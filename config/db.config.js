@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
-const mongo_local_url = "mongodb://localhost:27017/userAuth"
+const{MONGO_LOCAL_URL, MONGO_PROD_URL} = process.env
+
+
 
 const connectDb = async() => {
      try{
-         await mongoose.connect(mongo_local_url);
+         await mongoose.connect(MONGO_LOCAL_URL);
             console.log("✅MongoDB connected successfully");
      }catch(error){
             console.log("❌MongoDB connection failed", error);
