@@ -38,13 +38,69 @@ const registerUser = async({fullName, email, password, role}) => {
 
 }
 
+const verifyEmail = async({email, token}) => {
+    const user = await User.findOne({email});
+    if(!user) throw new Error("User not found");
+
+    const tokenDoc = await Token.findOne({userId: user._id, code: token});
+    if(!tokenDoc) throw new Error("Invalid or expired token");
+
+    user.isVerified = true;
+    await user.save();
+    await Token.deleteOne({userId: user._id});
+    return;
+
+}
+
+const resendEmailToken = async(email) => {
+     const user = await User.findOne({email});
+        if(!user) throw new Error("User not found");
+
+        if(user.isVerified === true) throw new Error("This email is already verified");
+
+
+        const tokenDoc = await Token.findOne({userId: user._id});
+        if(tokenDoc){
+            await Token.deleteOne({userId: user._id});
+        }
+
+        const code = ("" + Math.floor(1000 + Math.random() * 9000))
+        await Token.create({userId: user._id, code});
+        await MailService.sendVerificationEmail(email, user.fullName, code);
+        return;
+}
+
+const requestPasswordResetToken = async(email) => {
+    const user = await User.findOne({email});
+    if(!user) throw new Error("User not found");
+
+    await Token.deleteMany({userId: user._id});
+    const code = ("" + Math.floor(1000 + Math.random() * 9000))
+    await Token.create({userId: user._id, code});
+    await MailService.sendPasswordResetEmail(email, user.fullName, code);
+    return;
+}
+
+const resetPassword = async({email, token, newPassword}) => {
+    const user = await User.findOne({email});
+    if(!user) throw new Error("User not found");
+
+    const tokenDoc = await Token.findOne({userId: user._id, code: token});
+    if(!tokenDoc) throw new Error("Invalid or expired token");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    await Token.deleteMany({userId: user._id});
+    return;
+}
 const loginUser = async({email, password}) => {
     const user = await User.findOne({email});
 
     if(!user) throw new Error("no user exist with this email");
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if(!isMatch) throw new Error("Password mismatch");
+    if(!isMatch) throw new Error("Invalid Password");
 
     if(user.isVerified == false){
         throw new Error("Plase verify your email")
@@ -57,4 +113,4 @@ const loginUser = async({email, password}) => {
 
     return{user, token}
 }
-module.exports = {registerUser, loginUser}
+module.exports = {registerUser, loginUser, verifyEmail, resendEmailToken, requestPasswordResetToken, resetPassword}
