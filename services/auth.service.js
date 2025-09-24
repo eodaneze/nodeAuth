@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
+const Token = require('../models/token.model');
+const MailService = require('./mail.service');
 dotenv.config()
 
 
@@ -22,9 +24,16 @@ const registerUser = async({fullName, email, password, role}) => {
         role: role || "user",
      })
 
-     console.log("Before save");
      await newUser.save();
 
+     const code = ("" + Math.floor(1000 + Math.random() * 9000))
+
+     await Token.create({
+        userId: newUser._id,
+        code
+     })
+
+     await MailService.sendVerificationEmail(email, fullName, code)
      return newUser;
 
 }
@@ -37,6 +46,9 @@ const loginUser = async({email, password}) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if(!isMatch) throw new Error("Password mismatch");
 
+    if(user.isVerified == false){
+        throw new Error("Plase verify your email")
+    }
     const token = jwt.sign(
         {id: user._id, email: user.email},
         JWT_SECRET,
