@@ -47,5 +47,28 @@ exports.sendPasswordResetEmail = async(to, fullName, token)=>{
   return transporter.sendMail(mailOptions)
 
 }
+exports.sendAccountDeletionEmail = async(to, fullName, token)=>{
+    const templatePath = path.join(__dirname, "..", "template", "accountDeletion.html");
+    let html = fs.readFileSync(templatePath, "utf8");
+
+    const splitName = fullName.split(" ");
+    const firstName = splitName[0];
+
+    html = html
+           .replace("{{fullName}}", firstName)
+           .replace("{{code}}", token)
+           .replace("{{year}}", new Date().getFullYear());
+
+
+  const mailOptions = {
+     from: `${APP_NAME} <${GMAIL_USER}>`,
+     to,
+     subject: "Account Deletion 🗑️",
+     html,
+  }
+
+  return transporter.sendMail(mailOptions)
+
+}
 
 

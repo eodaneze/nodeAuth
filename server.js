@@ -1,7 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDb = require('./config/db.config');
-const authRoutes = require('./routes/auth.route')
 dotenv.config();
 
 connectDb();
@@ -13,7 +12,8 @@ app.use(express.json());
 
 const{PORT} = process.env;
 
-app.use("/api", authRoutes);
+app.use("/api", require("./routes"));
+
 
 
 
