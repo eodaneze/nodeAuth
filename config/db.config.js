@@ -9,7 +9,7 @@ const{MONGO_LOCAL_URL, MONGO_PROD_URL} = process.env
 
 const connectDb = async() => {
      try{
-         await mongoose.connect(MONGO_LOCAL_URL);
+         await mongoose.connect(MONGO_PROD_URL);
             console.log("✅MongoDB connected successfully");
      }catch(error){
             console.log("❌MongoDB connection failed", error);
