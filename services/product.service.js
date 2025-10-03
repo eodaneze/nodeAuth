@@ -23,4 +23,36 @@ const createProduct = async ({name, description, price, category, inStock, image
     return;
 }
 
-module.exports = {createProduct }
+const getAllProducts = async () => {
+    return Product.find().sort({ createdAt: -1 });
+}
+
+const getProductById = async (productId) => {
+    return Product.findById(productId);
+}
+const deleteProduct = async (productId) => {
+    return Product.findByIdAndDelete(productId);
+}
+
+const updateProduct = async (productId, updateData) => {
+    try{
+          return Product.findByIdAndUpdate(productId, updateData, {
+             new: true,
+             runValidators: true
+          })
+    }catch(error){
+        throw new Error('Update failed', error.Error);
+    }
+}
+
+const searchProducts =async(name, category) => {
+     const query = {};
+     if(name){
+         query.name = { $regex: name, $options: 'i' };
+     }
+     if(category){
+            query.category = category;
+     }
+     return Product.find(query).sort({ createdAt: -1 });
+}
+module.exports = {createProduct, getAllProducts, getProductById, deleteProduct, updateProduct, searchProducts}
