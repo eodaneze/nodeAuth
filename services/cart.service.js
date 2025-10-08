@@ -34,4 +34,33 @@ const addToCart = async (userId, productId, quantity) => {
 }
 
 
-module.exports = {addToCart}
+const viewCart = async(userId) => {
+    try{
+        const cartItems = await Cart.find({userId}).populate('productId');
+        if(cartItems.length === 0){
+            throw new Error("Cart is empty");
+        }
+        let totalAmount = 0;
+
+        cartItems.forEach(item => {
+           totalAmount += item.productId.price * item.quantity
+        })
+        return{cartItems, totalAmount}
+    }catch(error){
+
+    }
+}
+
+const deleteCart = async(cartId) => {
+   try{
+        const cartItem = await Cart.findById(cartId);
+        if(!cartItem || cartItem.length === 0){
+            throw new Error("Cart is empty")
+        }
+        await Cart.findByIdAndDelete(cartId)
+   }catch(error){
+      throw new Error("Error deleting cart")
+   }
+}
+
+module.exports = {addToCart, viewCart, deleteCart}
